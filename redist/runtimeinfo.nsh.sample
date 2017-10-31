@@ -1,0 +1,18 @@
+;NOTE! The panda software requires a VC runtime to be installed in order to work.
+;This installer must be bundled with the appropriate runtime installer, and have
+;the installation registry key set so the installer can tell if the runtime is
+;already installed.
+
+;Here is a list of the VC runtime downloads: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+;An list of the registry keys has been maintained here: https://stackoverflow.com/a/34209692/627525
+
+
+;Microsoft Visual C++ 2015 Redistributable (x86) - 14.0.24123
+!define VCRuntimeRegHive "HKEY_CLASSES_ROOT"
+!define VCRuntimeRegKey "Installer\Dependencies\,,x86,14.0,bundle\Dependents\{404c9c27-8377-4fd1-b607-7ca635db4e49}"
+!define VCRuntimeSetupPath "redist\"
+!define VCRuntimeSetupFile "VC_redist.x86.exe"
+
+;.NET framework 4.0 installer.
+!define DotNetRuntimeSetupPath "redist\"
+!define DotNetRuntimeSetupFile "dotNetFx40_Full_setup.exe"
