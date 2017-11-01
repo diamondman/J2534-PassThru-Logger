@@ -8,11 +8,11 @@
 
 
 ;Microsoft Visual C++ 2015 Redistributable (x86) - 14.0.24123
-!define VCRuntimeRegHive "HKEY_CLASSES_ROOT"
-!define VCRuntimeRegKey "Installer\Dependencies\,,x86,14.0,bundle\Dependents\{404c9c27-8377-4fd1-b607-7ca635db4e49}"
+!define VCRuntimeRegValPath 'HKCR "Installer\Dependencies\,,x86,14.0,bundle\Dependents\{404c9c27-8377-4fd1-b607-7ca635db4e49}" ""'
 !define VCRuntimeSetupPath "redist\"
 !define VCRuntimeSetupFile "VC_redist.x86.exe"
 
 ;.NET framework 4.0 installer.
+!define DotNetRuntimeRegValPath 'HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4" ""'
 !define DotNetRuntimeSetupPath "redist\"
 !define DotNetRuntimeSetupFile "dotNetFx40_Full_setup.exe"

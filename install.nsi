@@ -79,7 +79,7 @@ Section "J2534 Passthru Logger (required)"
   ;must be revisited. The registry key must be changed, and the VS redistributable
   ;binary must be updated to the VS version used.
   ;ClearErrors
-  ;ReadRegStr $0 ${VCRuntimeRegHive} "${VCRuntimeRegKey}" "${VCRuntimeRegValName}"
+  ;ReadRegStr $0 ${VCRuntimeRegValPath}
   ;${If} ${Errors}
     DetailPrint "Installing Visual Studio C Runtime..."
     File "${VCRuntimeSetupPath}\${VCRuntimeSetupFile}"
@@ -93,7 +93,7 @@ Section "J2534 Passthru Logger (required)"
 
   ;.NET framework 4.0 (Required for UI)
   ClearErrors
-  ;ReadRegStr $0 ${DotNetRuntimeRegHive} "${NETRuntimeRegKey}" "${DotNetRuntimeRegValName}"
+  ;ReadRegStr $0 ${DotNetRuntimeRegValPath}
   ;${If} ${Errors}
     DetailPrint "Installing .NET framework 4.0 Runtime..."
     File "${DotNetRuntimeSetupPath}\${DotNetRuntimeSetupFile}"
