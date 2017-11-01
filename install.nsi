@@ -1,6 +1,10 @@
-!define Logger_Reg_Path "Software\PassThruSupport.04.04\Passthru Logger"
-!define LoggerControl_Reg_Path "Software\Passthru Logger"
-!define Install_Name "J2534 PassThru Logger"
+﻿!define Install_Name "J2534 PassThru Logger"
+!define Author_Name "Jessy Diamond Exum"
+!define Product_Version ""
+
+!define Logger_Reg_Path        'HKLM "Software\PassThruSupport.04.04\${Install_Name}"'
+!define LoggerControl_Reg_Path 'HKCU "Software\${Install_Name}"'
+!define InstallRecord_Reg_Path 'HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}"'
 
 ;NOTE! The driver requires a VC runtime to be installed in order to work.
 ;The Logger UI requires the .net framework 4.0 runtime to work.
@@ -13,7 +17,7 @@
 ;--------------------------------
 ;Include Modern UI
 !include "MUI2.nsh"
-!include "x64.nsh"
+!include "FileFunc.nsh"
 
 !define MUI_ICON "PassThruLoggerControl/logger.ico"
 ;NSIS is ignoring the unicon unless it is the same as the normal icon
@@ -23,10 +27,10 @@
 Unicode true
 
 # Set the installer display name
-Name "J2534 PassThru Logger"
+Name "${Install_Name}"
 
 # set the name of the installer
-Outfile "J2534 PassThru Logger install.exe"
+Outfile "${Install_Name} install.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\J2534PassThruLogger
@@ -36,13 +40,13 @@ RequestExecutionLevel admin
 
 ; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "SOFTWARE\${Install_Name}" "Install_Dir"
+InstallDirRegKey ${InstallRecord_Reg_Path} "InstallLocation"
 
 ;--------------------------------
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "LICENSE"
-!insertmacro MUI_PAGE_COMPONENTS
+;!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -56,11 +60,11 @@ InstallDirRegKey HKLM "SOFTWARE\${Install_Name}" "Install_Dir"
 
 VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName"      "J2534 PassThru Logger"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments"         ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName"      "Jessy Diamond Exum"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName"      "${Author_Name}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks"  "Application released under the MIT license"
-;VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright"   "© ${PRODUCT_NAME} Team"
-;VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription"  "Jessy Exum"
-;VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion"      "${PRODUCT_VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright"   "© ${Author_Name}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription"  "Logging Utility/Driver to monitor and debug J2534 implementations."
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion"      "${Product_Version}"
 VIProductVersion "1.0.0.0"
 
 ;--------------------------------
@@ -74,23 +78,29 @@ Section "J2534 Passthru Logger (required)"
   ;If the visual studio version this project is compiled with changes, this section
   ;must be revisited. The registry key must be changed, and the VS redistributable
   ;binary must be updated to the VS version used.
-  ClearErrors
-  ReadRegStr $0 ${VCRuntimeRegHive} ${VCRuntimeRegKey} "Version"
-  ${If} ${Errors}
+  ;ClearErrors
+  ;ReadRegStr $0 ${VCRuntimeRegHive} "${VCRuntimeRegKey}" "${VCRuntimeRegValName}"
+  ;${If} ${Errors}
     DetailPrint "Installing Visual Studio C Runtime..."
     File "${VCRuntimeSetupPath}\${VCRuntimeSetupFile}"
     ExecWait '"$TEMP\${VCRuntimeSetupFile}" /passive /norestart'
-  ${Else}
-    DetailPrint "Visual Studio C Runtime already installed."
-  ${EndIf}
+  ;${Else}
+  ;  DetailPrint "Visual Studio C Runtime already installed."
+  ;${EndIf}
 
   ;Remove the now unnecessary runtime installer.
   Delete "$TEMP\${VCRuntimeSetupFile}"
 
-  ;.NET framework 4.0 (Required for UI  
-  DetailPrint "Installing .NET framework 4.0 Runtime..."
-  File "${DotNetRuntimeSetupPath}\${DotNetRuntimeSetupFile}"
-  ExecWait '"$TEMP\${DotNetRuntimeSetupFile}" /passive /norestart'
+  ;.NET framework 4.0 (Required for UI)
+  ClearErrors
+  ;ReadRegStr $0 ${DotNetRuntimeRegHive} "${NETRuntimeRegKey}" "${DotNetRuntimeRegValName}"
+  ;${If} ${Errors}
+    DetailPrint "Installing .NET framework 4.0 Runtime..."
+    File "${DotNetRuntimeSetupPath}\${DotNetRuntimeSetupFile}"
+    ExecWait '"$TEMP\${DotNetRuntimeSetupFile}" /passive /norestart'
+  ;${Else}
+  ;  DetailPrint ".NET framework 4.0 Runtime already installed."
+  ;${EndIf}
 
   ;Remove the now unnecessary runtime installer.
   Delete "$TEMP\${DotNetRuntimeSetupFile}"
@@ -103,55 +113,58 @@ Section "J2534 Passthru Logger (required)"
   File Release_x86\PassThruLogger.dll
 
   SetRegView 32
-  WriteRegStr    HKLM "${Logger_Reg_Path}" "FunctionLibrary"   "$INSTDIR\PassThruLogger.dll"
-  
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "CAN"               00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "CAN_PS"            00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SW_CAN_PS"         00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO14230"          00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO15765"          00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO15765_PS"       00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SW_ISO15765_PS"    00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "J1850VPW"          00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "J1850PWM"          00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "KW82_PS"           00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO9141"           00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO9141_PS"        00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "ISO14230_PS"       00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "UART_ECHO_BYTE_PS" 00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SCI_A_ENGINE"      00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SCI_A_TRANS"       00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SCI_B_ENGINE"      00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "SCI_B_TRANS"       00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "FT_CAN_PS"         00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "FT_ISO15675_PS"    00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "GM_UART_PS"        00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "HONDA_DIAG_PS"     00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "J2610_PS"          00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "J1850PWM_PS"       00000001
-  WriteRegDWORD  HKLM "${Logger_Reg_Path}" "J1850VPW_PS"       00000001
-  
-  WriteRegStr    HKLM "${Logger_Reg_Path}" "Name"              "PassThru Logger"
-  WriteRegStr    HKLM "${Logger_Reg_Path}" "Vendor"            "Jessy Diamond Exum"
-  WriteRegStr    HKLM "${Logger_Reg_Path}" "ConfigApplication" ""
+  WriteRegStr    ${Logger_Reg_Path} "FunctionLibrary"   "$INSTDIR\PassThruLogger.dll"
+  WriteRegStr    ${Logger_Reg_Path} "Name"              "${Install_Name}"
+  WriteRegStr    ${Logger_Reg_Path} "Vendor"            "${Author_Name}"
+  WriteRegStr    ${Logger_Reg_Path} "ConfigApplication" "$INSTDIR\PassThruLoggerControl.exe"
+
+  WriteRegDWORD  ${Logger_Reg_Path} "CAN"               00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "CAN_PS"            00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SW_CAN_PS"         00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO14230"          00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO15765"          00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO15765_PS"       00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SW_ISO15765_PS"    00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "J1850VPW"          00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "J1850PWM"          00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "KW82_PS"           00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO9141"           00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO9141_PS"        00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "ISO14230_PS"       00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "UART_ECHO_BYTE_PS" 00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SCI_A_ENGINE"      00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SCI_A_TRANS"       00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SCI_B_ENGINE"      00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "SCI_B_TRANS"       00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "FT_CAN_PS"         00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "FT_ISO15675_PS"    00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "GM_UART_PS"        00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "HONDA_DIAG_PS"     00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "J2610_PS"          00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "J1850PWM_PS"       00000001
+  WriteRegDWORD  ${Logger_Reg_Path} "J1850VPW_PS"       00000001
   DetailPrint "Registered J2534 Logger"
-  
-  
-  ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\${Install_Name}" "Install_Dir" "$INSTDIR"
 
   ; Write the uninstall keys for Windows
-  ;WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "DisplayVersion" ""
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "DisplayIcon" '"$INSTDIR\PassThruLoggerControl.exe",0'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "DisplayName" "${Install_Name}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "Publisher" "Jessy Diamond Exum"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "URLInfoAbout" "https://github.com/diamondman/J2534PassThruLogger"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}" "NoRepair" 1
+  WriteRegStr   ${InstallRecord_Reg_Path} "DisplayVersion"       "${Product_Version}"
+  WriteRegStr   ${InstallRecord_Reg_Path} "DisplayIcon"          '"$INSTDIR\PassThruLoggerControl.exe",0'
+  WriteRegStr   ${InstallRecord_Reg_Path} "DisplayName"          "${Install_Name}"
+  WriteRegStr   ${InstallRecord_Reg_Path} "Publisher"            "${Author_Name}"
+  WriteRegStr   ${InstallRecord_Reg_Path} "UninstallString"      "$\"$INSTDIR\uninstall.exe$\""
+  WriteRegStr   ${InstallRecord_Reg_Path} "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+  WriteRegStr   ${InstallRecord_Reg_Path} "InstallLocation"      "$\"$INSTDIR$\""
+  WriteRegStr   ${InstallRecord_Reg_Path} "URLInfoAbout"         "https://github.com/diamondman/J2534PassThruLogger"
+  WriteRegDWORD ${InstallRecord_Reg_Path} "NoModify"             1
+  WriteRegDWORD ${InstallRecord_Reg_Path} "NoRepair"             1
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD ${InstallRecord_Reg_Path} "EstimatedSize"        "$0"
 
   SetOutPath $INSTDIR
   WriteUninstaller "uninstall.exe"
+ 
+  # Start Menu
+  createShortCut "$SMPROGRAMS\PassThruLoggerControl.lnk" "$INSTDIR\PassThruLoggerControl.exe"
 
 SectionEnd
 
@@ -159,11 +172,13 @@ SectionEnd
 ; Uninstaller
 Section "Uninstall"
 
+  # Remove Start Menu launcher
+  delete "$SMPROGRAMS\PassThruLoggerControl.lnk"
+
   ; Remove registry keys
-  DeleteRegKey HKLM "${Logger_Reg_Path}"
-  DeleteRegKey HKCU "${LoggerControl_Reg_Path}"
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${Install_Name}"
-  DeleteRegKey HKLM "SOFTWARE\${Install_Name}"
+  DeleteRegKey ${Logger_Reg_Path}
+  DeleteRegKey ${LoggerControl_Reg_Path}
+  DeleteRegKey ${InstallRecord_Reg_Path}
 
   ; Remove files and uninstaller
   Delete "$INSTDIR\uninstall.exe"
